@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Free Service</title>
+  <style>
+    :root {
+      --primary-color: #4a6bff;
+      --secondary-color: #f5f7ff;
+      --text-color: #333;
+      --white: #fff;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --notification-color: #ff6b6b;
+      --dark-bg: #1a1a1a;
+      --dark-text: #f0f0f0;
+      --dark-secondary: #2d2d2d;
+      --dark-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --success-color: #4CAF50;
+      --warning-color: #FFC107;
+      --danger-color: #dc3545;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: var(--secondary-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      transition: background-color 0.3s, color 0.3s;
+      padding-top: 50px;
+      padding-bottom: 70px;
+    }
+    
+    body.dark-mode {
+      background-color: var(--dark-bg);
+      color: var(--dark-text);
+    }
+
+    /* Header Styles */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      background-color: var(--white);
+      box-shadow: var(--shadow);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      transition: background-color 0.3s, box-shadow 0.3s;
+      border-bottom-left-radius: 30px;
+      border-bottom-right-radius: 30px;
+      height: 50px;
+    }
+    
+    body.dark-mode header {
+      background-color: var(--dark-secondary);
+      box-shadow: var(--dark-shadow);
+    }
+    
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 50%;
+      overflow: hidden;
+    }
+    
+    .logo {
+      height: 30px;
+      width: auto;
+      max-width: 100%;
+      object-fit: contain;
+    }
+    
+    .app-title {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--primary-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .balance-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .balance {
+      background-color: var(--primary-color);
+      color: var(--white);
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 12px;
+      white-space: nowrap;
+      display: flex;
+      flex-direction: row-reverse;
+      gap: 5px;
+      transition: transform 0.3s;
+    }
+    
+    .balance.update {
+      transform: scale(1.1);
+    }
+    
+    .icon-btn {
+      background: none;
+      border: none;
+      color: var(--text-color);
+      font-size: 18px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.3s;
+      padding: 5px;
+      width: 15px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    
+    body.dark-mode .icon-btn {
+      color: var(--dark-text);
+    }
+    
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: var(--notification-color);
+      color: white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    
+    .notification-badge.pulse {
+      animation: pulse 0.5s 2;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .theme-toggle .fa-sun,
+    .theme-toggle .fa-moon {
+      transition: opacity 0.3s;
+    }
+    
+    body.dark-mode .theme-toggle .fa-sun {
+      display: block;
+      opacity: 1;
+    }
+    
+    body.dark-mode .theme-toggle .fa-moon {
+      display: none;
+      opacity: 0;
+    }
+    
+    body:not(.dark-mode) .theme-toggle .fa-sun {
+      display: none;
+      opacity: 0;
+    }
+    
+    body:not(.dark-mode) .theme-toggle .fa-moon {
+      display: block;
+      opacity: 1;
+    }
+
+    /* Navigation Bar Styles */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: var(--white);
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
+      z-index: 100;
+      transition: background-color 0.3s, box-shadow 0.3s;
+      border-top-left-radius: 30px;
+      border-top-right-radius: 30px;
+      height: 60px;
+    }
+    
+    body.dark-mode .bottom-nav {
+      background-color: var(--dark-secondary);
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: var(--text-color);
+      font-size: 12px;
+      transition: all 0.3s;
+      padding: 8px 12px;
+      position: relative;
+      flex: 1;
+      max-width: 33.33%;
+    }
+    
+    body.dark-mode .nav-btn {
+      color: var(--dark-text);
+    }
+    
+    .nav-btn i {
+      font-size: 20px;
+      margin-bottom: 4px;
+      transition: color 0.3s;
+    }
+    
+    .nav-btn:hover i {
+      color: var(--primary-color);
+    }
+    
+    .nav-btn.active i {
+      color: var(--primary-color);
+    }
+    
+    .nav-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      width: 6px;
+      height: 6px;
+      background-color: var(--primary-color);
+      border-radius: 50%;
+    }
+
+
+    /* Color classes */
+    .blue { background-color: #3a7bd5; }
+    .sky { background-color: #00c6ff; }
+    .purple { background-color: #8e2de2; }
+    .red { background-color: #c31432; }
+    .violet { background-color: #9d50bb; }
+    .green { background-color: #11998e; }
+    .orange { background-color: #FFA500; }
+    .yellow { background-color: #FFD700; }
+    .pink { background-color: #ff6f91; }
+    .teal { background-color: #008080; }
+    .cyan { background-color: #00FFFF; }
+    .lime { background-color: #32CD32; }
+    .brown { background-color: #8B4513; }
+    .gray { background-color: #808080; }
+    .black { background-color: #000000; color: #ffffff; }
+    .white { background-color: #ffffff; color: #000000; }
+    .indigo { background-color: #4B0082; }
+    .maroon { background-color: #800000; }
+    .gold { background-color: #FFD700; }
+    .silver { background-color: #C0C0C0; }
+    .navy { background-color: #000080; color: #ffffff; }
+    .aqua { background-color: #00FFFF; }
+    .peach { background-color: #FFDAB9; }
+    .olive { background-color: #808000; }
+
+    /* Manual Service Content */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      flex: 1;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      padding: 20px;
+      font-size: 26px;
+      color: var(--text-color);
+      margin-top: 10px;
+    }
+
+    body.dark-mode h2 {
+      color: var(--dark-text);
+    }
+
+    .services-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 600px;
+      margin: auto;
+      padding: 10px;
+      gap: 10px;
+    }
+
+    .service-box {
+      width: calc(50% - 15px);
+      color: white;
+      text-align: center;
+      padding: 25px 10px;
+      border-radius: 15px;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 400;
+      box-shadow: var(--shadow);
+      transition: 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-sizing: border-box;
+    }
+
+    body.dark-mode .service-box {
+      box-shadow: var(--dark-shadow);
+    }
+
+    .service-box:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    body.dark-mode .service-box:hover {
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+
+    .service-box img {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 8px;
+      object-fit: contain;
+    }
+
+    .blue { background-color: #3a7bd5; }
+    .sky { background-color: #00c6ff; }
+    .purple { background-color: #8e2de2; }
+    .red { background-color: #c31432; }
+    .violet { background-color: #9d50bb; }
+    .green { background-color: #11998e; }
+    
+    .loading-text, .error-message {
+      text-align: center;
+      color: var(--text-color);
+      padding: 20px;
+      width: 100%;
+    }
+    
+    body.dark-mode .loading-text,
+    body.dark-mode .error-message {
+      color: var(--dark-text);
+    }
+    
+    .error-message i {
+      margin-right: 8px;
+      color: var(--danger-color);
+    }
+    
+    @media screen and (max-width: 500px) {
+      .service-box {
+        width: calc(50% - 10px);
+        padding: 20px 5px;
+        font-size: 15px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .logo {
+        height: 35px;
+      }
+      
+      .app-title {
+        font-size: 18px;
+      }
+      
+      .balance {
+        font-size: 14px;
+        padding: 6px 12px;
+      }
+      
+      .icon-btn {
+        font-size: 20px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .app-title {
+        font-size: 14px;
+      }
+      
+      .logo {
+        height: 25px;
+      }
+      
+      .header-controls {
+        gap: 10px;
+      }
+      
+      .balance {
+        font-size: 11px;
+        padding: 4px 8px;
+      }
+      
+      .icon-btn {
+        font-size: 16px;
+      }
+      
+      .notification-badge {
+        width: 16px;
+        height: 16px;
+        font-size: 9px;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="logo-container">
+      <a href="index.html">
+        <img src="https://blogger.googleusercontent.com/img/a/AVvXsEgtMmwDkd4fcMuYiu4PceeC3kh63S5tv-Wnm1qRDGRLYplLsXgwz37EYr_QTqJRdNHBPkuC9bPzi6eSRPU9c7Q8w32nC_wUmwcOAn65iKHOy-Xw5Z04vbMsLuIYHM7D0sOZlEy4vMWQ8ULGch8AqvU7sE7W66t_cyFFAjMHxdxvA7GzHNL6ENkTQEJt=s1600" alt="App Logo" class="logo" id="header-logo">
+      </a>
+      <div class="app-title" id="header-title"></div>
+    </div>
+    
+    <div class="header-controls">
+      <div class="balance-container">
+        <span class="balance"><span id="user-balance">0.00</span>৳</span>
+      </div>
+      <button class="icon-btn theme-toggle" id="theme-toggle">
+        <i class="fas fa-sun"></i>
+        <i class="fas fa-moon"></i>
+      </button>
+      <button class="icon-btn" id="orders-btn" onclick="window.location.href='orders.html'">
+        <i class="fas fa-clipboard-list"></i>
+      </button>
+      <button class="icon-btn" id="notification-btn" onclick="window.location.href='notifications.html'">
+        <i class="fas fa-bell"></i>
+        <span class="notification-badge" id="notification-badge">0</span>
+      </button>
+    </div>
+  </header>
+  
+  <!-- Main Content -->
+  <div class="container">
+    <h2>Free Service</h2>
+
+    <div class="services-container" id="services-container">
+      <!-- Services will be loaded here -->
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="payment.html" class="nav-btn" id="deposit-btn">
+      <i class="fas fa-money-bill-wave"></i>
+      <span>Deposit</span>
+    </a>
+    <a href="index.html" class="nav-btn" id="home-btn">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </a>
+    <a href="profile.html" class="nav-btn" id="profile-btn">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <script>
+  // Firebase Configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCEn86IfdTNcvEmQuNP-KCvrmMABagcdkc",
+    authDomain: "web-iatz.firebaseapp.com",
+    projectId: "web-iatz",
+    storageBucket: "web-iatz.appspot.com",
+    messagingSenderId: "264921056318",
+    appId: "1:264921056318:web:c77e93fad660665bdfbd6f",
+    databaseURL: "https://web-iatz-default-rtdb.asia-southeast1.firebasedatabase.app"
+  };
+
+  // Initialize Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const firestore = firebase.firestore();
+
+  // DOM elements
+  const servicesContainer = document.getElementById('services-container');
+  const userBalance = document.getElementById('user-balance');
+  const headerLogo = document.getElementById('header-logo');
+  const headerTitle = document.getElementById('header-title');
+  const themeToggle = document.getElementById('theme-toggle');
+  const body = document.body;
+  const notificationBadge = document.getElementById('notification-badge');
+
+  // App state
+  let currentUser = null;
+
+  // Initialize the app
+  document.addEventListener('DOMContentLoaded', () => {
+    // Set default header first
+    setDefaultHeader();
+    
+    // Then try to load from Firestore
+    loadHeaderFromFirestore();
+    
+    // Initialize theme
+    initTheme();
+    
+    // Initialize navigation
+    setupNavigation();
+    
+    // Check auth state
+    checkAuthState();
+  });
+
+  // Load header logo and title from Firestore
+  async function loadHeaderFromFirestore() {
+    try {
+      const doc = await firestore.collection('settings').doc('general').get();
+      
+      if (doc.exists) {
+        const data = doc.data();
+        
+        // Update logo if exists in Firestore
+        if (data.headerLogoUrl) {
+          headerLogo.src = data.headerLogoUrl;
+          headerLogo.style.display = 'block';
+          headerLogo.onerror = function() {
+            // Fallback to default logo if custom logo fails to load
+            this.src = 'https://blogger.googleusercontent.com/img/a/AVvXsEgtMmwDkd4fcMuYiu4PceeC3kh63S5tv-Wnm1qRDGRLYplLsXgwz37EYr_QTqJRdNHBPkuC9bPzi6eSRPU9c7Q8w32nC_wUmwcOAn65iKHOy-Xw5Z04vbMsLuIYHM7D0sOZlEy4vMWQ8ULGch8AqvU7sE7W66t_cyFFAjMHxdxvA7GzHNL6ENkTQEJt=s1600';
+          };
+        }
+        
+        // Update title if exists in Firestore
+        if (data.siteTitle) {
+          headerTitle.textContent = data.siteTitle;
+          headerTitle.style.display = 'block';
+        }
+      }
+    } catch (error) {
+      console.error("Error loading header:", error);
+      // Keep default header if there's an error
+    }
+  }
+
+  // Set default header values
+  function setDefaultHeader() {
+    headerLogo.src = 'https://blogger.googleusercontent.com/img/a/AVvXsEgtMmwDkd4fcMuYiu4PceeC3kh63S5tv-Wnm1qRDGRLYplLsXgwz37EYr_QTqJRdNHBPkuC9bPzi6eSRPU9c7Q8w32nC_wUmwcOAn65iKHOy-Xw5Z04vbMsLuIYHM7D0sOZlEy4vMWQ8ULGch8AqvU7sE7W66t_cyFFAjMHxdxvA7GzHNL6ENkTQEJt=s1600';
+    headerLogo.style.display = 'block';
+  }
+
+  // Initialize theme from local storage
+  function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+      body.classList.add('dark-mode');
+    }
+    
+    themeToggle.addEventListener('click', toggleDarkMode);
+    updateThemeIcon();
+  }
+
+  // Toggle dark/light mode
+  function toggleDarkMode() {
+    body.classList.toggle('dark-mode');
+    const isDarkMode = body.classList.contains('dark-mode');
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    updateThemeIcon();
+  }
+
+  // Update theme toggle icon
+  function updateThemeIcon() {
+    const isDarkMode = body.classList.contains('dark-mode');
+    document.querySelector('.fa-sun').style.display = isDarkMode ? 'block' : 'none';
+    document.querySelector('.fa-moon').style.display = isDarkMode ? 'none' : 'block';
+  }
+
+  // Check user authentication state
+  function checkAuthState() {
+    auth.onAuthStateChanged((user) => {
+      currentUser = user;
+      if (user) {
+        loadUserData(user.uid);
+        loadServices();
+        setupNotificationListener(user.uid);
+      } else {
+        window.location.href = 'signin.html';
+      }
+    }, (error) => {
+      console.error("Auth error:", error);
+    });
+  }
+
+  // Load user data from Firestore
+  async function loadUserData(userId) {
+    try {
+      const doc = await firestore.collection('users').doc(userId).get();
+      
+      if (doc.exists) {
+        const userData = doc.data();
+        if (userData.balance !== undefined) {
+          updateBalanceDisplay(userData.balance);
+        }
+      } else {
+        // Create user document if not exists
+        await firestore.collection('users').doc(userId).set({
+          balance: 0.00,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    } catch (error) {
+      console.error("Error loading user data:", error);
+    }
+  }
+
+  // Load services from Firestore
+  async function loadServices() {
+    try {
+      const snapshot = await firestore.collection('Free Service').get();
+      
+      if (snapshot.empty) {
+        await createDefaultServices();
+        return;
+      }
+
+      servicesContainer.innerHTML = '';
+      
+      snapshot.forEach(doc => {
+        const service = doc.data();
+        if (service.name && service.icon) {
+          const serviceElement = `
+            <a href="${service.link || '#'}" class="service-box ${service.color || 'blue'}">
+              <img src="${service.icon}" 
+                   alt="${service.name}"
+                   onerror="this.onerror=null;this.src='https://img.icons8.com/ios-filled/50/ffffff/services.png'">
+              ${service.name}
+            </a>
+          `;
+          servicesContainer.insertAdjacentHTML('beforeend', serviceElement);
+        }
+      });
+
+    } catch (error) {
+      console.error("Service loading error:", error);
+      servicesContainer.innerHTML = `
+        <div class="error-message">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p>Services could not be loaded. Please try again later.</p>
+        </div>
+      `;
+    }
+  }
+
+  // Create default services if collection is empty
+  async function createDefaultServices() {
+    try {
+      const defaultServices = [
+        {
+          name: "Loading...",
+          icon: "https://img.icons8.com/ios-filled/50/ffffff/loading.png",
+          link: "",
+          color: "red"
+        }
+      ];
+
+      const batch = firestore.batch();
+      defaultServices.forEach(service => {
+        const docRef = firestore.collection("Free Service").doc();
+        batch.set(docRef, service);
+      });
+
+      await batch.commit();
+      loadServices(); // Reload after creating defaults
+      
+    } catch (error) {
+      console.error("Error creating default services:", error);
+    }
+  }
+
+  // Setup real-time notification listener
+  function setupNotificationListener(userId) {
+    const notificationsRef = firestore.collection('notifications')
+      .where('userId', '==', userId)
+      .where('read', '==', false);
+      
+    notificationsRef.onSnapshot((snapshot) => {
+      const count = snapshot.size;
+      updateNotificationBadge(count);
+      
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          playNotificationSound();
+        }
+      });
+    }, (error) => {
+      console.error("Notification error:", error);
+    });
+  }
+
+  // Update notification badge
+  function updateNotificationBadge(count) {
+    const num = parseInt(count) || 0;
+    
+    if (num > 0) {
+      notificationBadge.textContent = num;
+      notificationBadge.style.display = 'flex';
+      
+      if (num > parseInt(notificationBadge.dataset.prevCount || 0)) {
+        notificationBadge.classList.add('pulse');
+        setTimeout(() => notificationBadge.classList.remove('pulse'), 1000);
+      }
+    } else {
+      notificationBadge.style.display = 'none';
+    }
+    
+    notificationBadge.dataset.prevCount = num;
+  }
+
+  // Setup navigation active states
+  function setupNavigation() {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      const btnPage = btn.getAttribute('href').split('/').pop();
+      if (btnPage === currentPage) {
+        btn.classList.add('active');
+      }
+      
+      btn.addEventListener('click', (e) => {
+        if (!currentUser) {
+          e.preventDefault();
+          window.location.href = 'signin.html';
+        }
+      });
+    });
+  }
+
+  // Update balance display with animation
+  function updateBalanceDisplay(balance) {
+    const formattedBalance = parseFloat(balance).toFixed(2);
+    userBalance.textContent = formattedBalance;
+    userBalance.parentElement.classList.add('update');
+    setTimeout(() => userBalance.parentElement.classList.remove('update'), 300);
+  }
+
+  // Play notification sound
+  function playNotificationSound() {
+    const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
+    audio.volume = 0.3;
+    audio.play().catch(e => console.log("Audio error:", e));
+  }
+</script>
+</body>
+</html>
