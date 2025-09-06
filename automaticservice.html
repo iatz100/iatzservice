@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automatic Service</title>
+    <style>
+        :root {
+            --bg-color: #f0f0f0;
+            --text-color: #222;
+            --glitch-color-1: #ff3d3d;
+            --glitch-color-2: #3dff3d;
+            --glitch-color-3: #3d3dff;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #121212;
+                --text-color: #f0f0f0;
+                --glitch-color-1: #ff5252;
+                --glitch-color-2: #52ff52;
+                --glitch-color-3: #5252ff;
+            }
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .glitch-container {
+            position: relative;
+            width: 100%;
+            text-align: center;
+        }
+
+        .glitch {
+            position: relative;
+            font-size: 6rem;
+            font-weight: bold;
+            color: var(--glitch-color-1);
+            text-transform: uppercase;
+            animation: glitch-effect 3s infinite;
+            display: inline-block;
+            margin: 0 auto;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: "Not Found";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glitch::before {
+            color: var(--glitch-color-2);
+            animation: glitch-effect 3s infinite;
+            z-index: -1;
+        }
+
+        .glitch::after {
+            color: var(--glitch-color-3);
+            animation: glitch-effect 2s infinite reverse;
+            z-index: -2;
+        }
+
+        @keyframes glitch-effect {
+            0% {
+                transform: translate(0);
+            }
+            20% {
+                transform: translate(-5px, 5px);
+            }
+            40% {
+                transform: translate(-5px, -5px);
+            }
+            60% {
+                transform: translate(5px, 5px);
+            }
+            80% {
+                transform: translate(5px, -5px);
+            }
+            100% {
+                transform: translate(0);
+            }
+        }
+
+        .subtext {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            display: block;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="glitch-container">
+        <div class="glitch">Not Found</div>
+        <span class="subtext">Error 404 - Page not found</span>
+    </div>
+</body>
+</html>
