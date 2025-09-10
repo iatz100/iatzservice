@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up</title>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<style>
+    :root {
+        --primary-color: #4a6bff;
+        --secondary-color: #f5f7ff;
+        --white: #fff;
+        --error-color: #ff4d4d;
+        --text-color: #333;
+        --border-color: #ddd;
+        --background-color: var(--secondary-color);
+        --card-background: var(--white);
+        --header-bg: var(--white);
+        --footer-bg: var(--white);
+        --footer-text: var(--text-color);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --secondary-color: #1a1a1a;
+            --white: #2d2d2d;
+            --text-color: #f0f0f0;
+            --border-color: #444;
+            --background-color: #121212;
+            --card-background: var(--white);
+            --header-bg: #1a1a1a;
+            --footer-bg: #1a1a1a;
+            --footer-text: #f0f0f0;
+        }
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', sans-serif;
+    }
+    
+    p {
+        font-size: 12px;
+    }
+
+    body {
+        background: var(--background-color);
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        padding: 0;
+        transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* Header Styles */
+    header {
+        background-color: var(--header-bg);
+        padding: 5px 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: background 0.3s ease;
+        border-bottom-left-radius: 30px;
+        border-bottom-right-radius: 30px;
+         border-bottom: 1px solid rgb(223, 32, 248);
+    }
+
+    .header-image {
+        max-height: 25px;
+        width: auto;
+    }
+
+    /* Main Content Styles */
+    main {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .auth-container {
+        width: 100%;
+        max-width: 400px;
+        background: var(--card-background);
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: background 0.3s ease;
+    }
+
+    .auth-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .auth-header h1 {
+        color: var(--text-color);
+    }
+
+    .auth-header p {
+        color: var(--text-color);
+        opacity: 0.8;
+    }
+
+    .form-group {
+        position: relative;
+        margin-bottom: 35px;
+        cursor: text;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 16px;
+        outline: none;
+        transition: 0.3s;
+        background-color: var(--card-background);
+        color: var(--text-color);
+    }
+
+    .floating-label {
+        position: absolute;
+        left: 15px;
+        top: 12px;
+        color: #999;
+        font-size: 16px;
+        pointer-events: none;
+        transition: 0.3s ease;
+        background: var(--card-background);
+        padding: 0 5px;
+    }
+
+    .form-control:focus + .floating-label,
+    .form-control:not(:placeholder-shown) + .floating-label {
+        top: -10px;
+        left: 10px;
+        font-size: 12px;
+        color: var(--primary-color);
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+    }
+
+    .form-group.error .form-control {
+        border-color: var(--error-color);
+    }
+
+    .error-icon {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        width: 22px;
+        height: 22px;
+        background: var(--error-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.3s;
+    }
+
+    .form-group.error .error-icon {
+        opacity: 1;
+    }
+
+    .tooltip {
+        position: absolute;
+        top: 50%;
+        right: 40px;
+        transform: translateY(-50%) translateX(20px);
+        color: var(--error-color);
+        font-size: 14px;
+        font-weight: bold;
+        white-space: nowrap;
+        opacity: 0;
+        transition: 0.3s ease;
+    }
+
+    .form-group.error .tooltip {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+
+    .btn {
+        width: 100%;
+        padding: 14px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: opacity 0.3s;
+    }
+
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 14px;
+        color: var(--text-color);
+    }
+    .auth-footer a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+
+    .password-strength {
+        width: 100%;
+        height: 4px;
+        background: #eee;
+        margin-top: 8px;
+        border-radius: 2px;
+        overflow: hidden;
+    }
+
+    .password-strength-fill {
+        height: 100%;
+        width: 0%;
+        background: var(--error-color);
+        transition: width 0.3s, background 0.3s;
+    }
+
+    .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255,255,255,.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Footer Styles */
+    footer {
+        background-color: var(--footer-bg);
+        color: var(--footer-text);
+        text-align: center;
+        padding: 15px 20px;
+        transition: background 0.3s ease, color 0.3s ease;
+        border-top-left-radius: 30px;
+        border-top-right-radius: 30px;
+         border-top: 1px solid rgb(223, 32, 248);
+    }
+
+    /* Success Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .modal-content {
+        background: var(--card-background);
+        border-radius: 12px;
+        width: 90%;
+        max-width: 400px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        transform: translateY(20px);
+        transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .modal-content {
+        transform: translateY(0);
+    }
+
+    .checkmark {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        display: block;
+        stroke-width: 3;
+        stroke: #4CAF50;
+        stroke-miterlimit: 10;
+        box-shadow: 0 0 0 rgba(76, 175, 80, 0.4);
+        animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
+    }
+
+    .checkmark-circle {
+        stroke-dasharray: 166;
+        stroke-dashoffset: 166;
+        stroke-width: 3;
+        stroke-miterlimit: 10;
+        stroke: #4CAF50;
+        fill: none;
+        animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    }
+
+    .checkmark-check {
+        transform-origin: 50% 50%;
+        stroke-dasharray: 48;
+        stroke-dashoffset: 48;
+        animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+    }
+
+    @keyframes stroke {
+        100% {
+            stroke-dashoffset: 0;
+        }
+    }
+
+    @keyframes scale {
+        0%, 100% {
+            transform: none;
+        }
+        50% {
+            transform: scale3d(1.1, 1.1, 1);
+        }
+    }
+
+    @keyframes fill {
+        100% {
+            box-shadow: inset 0 0 0 100px rgba(76, 175, 80, 0);
+        }
+    }
+
+    .modal-title {
+        font-size: 24px;
+        margin-bottom: 10px;
+        color: var(--text-color);
+    }
+</style>
+</head>
+<body>
+    <header>
+        <img src="https://blogger.googleusercontent.com/img/a/AVvXsEgtMmwDkd4fcMuYiu4PceeC3kh63S5tv-Wnm1qRDGRLYplLsXgwz37EYr_QTqJRdNHBPkuC9bPzi6eSRPU9c7Q8w32nC_wUmwcOAn65iKHOy-Xw5Z04vbMsLuIYHM7D0sOZlEy4vMWQ8ULGch8AqvU7sE7W66t_cyFFAjMHxdxvA7GzHNL6ENkTQEJt=s1600" alt="Social Service Logo" class="header-image">
+    </header>
+
+    <main>
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1>Create Account</h1>
+                <p>Join Social Service today</p>
+            </div>
+
+            <form id="signup-form" novalidate>
+                <div class="form-group">
+                    <input type="text" id="name" class="form-control" placeholder=" " required>
+                    <label for="name" class="floating-label">Full Name</label>
+                    <div class="error-icon">!</div>
+                    <div class="tooltip">Name is required</div>
+                </div>
+
+                <div class="form-group">
+                    <input type="email" id="email" class="form-control" placeholder=" " required>
+                    <label for="email" class="floating-label">Email Address</label>
+                    <div class="error-icon">!</div>
+                    <div class="tooltip">Valid email required</div>
+                </div>
+
+                <div class="form-group">
+                    <input type="tel" id="phone" class="form-control" placeholder=" " maxlength="11" required>
+                    <label for="phone" class="floating-label">Phone Number</label>
+                    <div class="error-icon">!</div>
+                    <div class="tooltip">11-digit number required</div>
+                </div>
+
+                <div class="form-group">
+                    <input type="password" id="password" class="form-control" placeholder=" " required minlength="8">
+                    <label for="password" class="floating-label">Password</label>
+                    <div class="error-icon">!</div>
+                    <div class="tooltip">Minimum 8 characters</div>
+                    <div class="password-strength">
+                        <div class="password-strength-fill" id="password-strength-fill"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <input type="password" id="confirm-password" class="form-control" placeholder=" " required>
+                    <label for="confirm-password" class="floating-label">Confirm Password</label>
+                    <div class="error-icon">!</div>
+                    <div class="tooltip">Passwords must match</div>
+                </div>
+
+                <button type="submit" class="btn" id="submit-btn">
+                    <span id="btn-text">Sign Up</span>
+                </button>
+
+                <div class="auth-footer">
+                    Already have an account? <a href="signin.html">Sign In</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <p> Copyright &copy; 2018-2025 iA TECH ZONE All Rights Reserved.</p>
+    </footer>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="success-modal">
+        <div class="modal-content">
+            <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+            <h2 class="modal-title">Registration Successful</h2>
+        </div>
+    </div>
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyCEn86IfdTNcvEmQuNP-KCvrmMABagcdkc",
+        authDomain: "web-iatz.firebaseapp.com",
+        projectId: "web-iatz",
+        storageBucket: "web-iatz.appspot.com",
+        messagingSenderId: "264921056318",
+        appId: "1:264921056318:web:c77e93fad660665bdfbd6f"
+    };
+     
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // DOM elements
+    const form = document.getElementById('signup-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const btnText = document.getElementById('btn-text');
+    const formGroups = document.querySelectorAll('.form-group');
+    const successModal = document.getElementById('success-modal');
+
+    // Show loading state
+    function showLoading() {
+        submitBtn.disabled = true;
+        btnText.innerHTML = '<span class="spinner"></span> Creating account...';
+    }
+
+    // Hide loading state
+    function hideLoading() {
+        submitBtn.disabled = false;
+        btnText.textContent = 'Sign Up';
+    }
+
+    // Show error on specific field
+    function showError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const formGroup = field.parentElement;
+        const tooltip = formGroup.querySelector('.tooltip');
+        
+        formGroup.classList.add('error');
+        tooltip.textContent = message;
+        field.focus();
+    }
+
+    // Clear all errors
+    function clearErrors() {
+        formGroups.forEach(group => {
+            group.classList.remove('error');
+        });
+    }
+
+    // Show success modal and redirect after animation
+    function showSuccessModal() {
+        successModal.classList.add('active');
+        
+        // Redirect after 3 seconds (after animation completes)
+        setTimeout(() => {
+            window.location.href = 'signin.html';
+        }, 3000);
+    }
+
+    // Password strength indicator
+    function checkPasswordStrength() {
+        const password = document.getElementById('password').value;
+        let strength = 0;
+        
+        if (password.length >= 8) strength += 25;
+        if (password.length >= 12) strength += 25;
+        if (/[a-z]/.test(password)) strength += 10;
+        if (/[A-Z]/.test(password)) strength += 10;
+        if (/\d/.test(password)) strength += 10;
+        if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+        
+        strength = Math.min(strength, 100);
+        const strengthFill = document.getElementById('password-strength-fill');
+        strengthFill.style.width = strength + '%';
+        
+        if (strength < 50) {
+            strengthFill.style.backgroundColor = 'var(--error-color)';
+        } else if (strength < 75) {
+            strengthFill.style.backgroundColor = '#ff9800';
+        } else {
+            strengthFill.style.backgroundColor = '#4CAF50';
+        }
+    }
+
+    // Form submission handler
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        clearErrors();
+        showLoading();
+
+        // Get form values
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        // Validate form
+        let isValid = true;
+
+        if (!name) {
+            showError('name', 'Name is required');
+            hideLoading();
+            return;
+        }
+
+        if (!email) {
+            showError('email', 'Email is required');
+            hideLoading();
+            return;
+        } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+            showError('email', 'Invalid email format');
+            hideLoading();
+            return;
+        }
+
+        if (!phone) {
+            showError('phone', 'Phone is required');
+            hideLoading();
+            return;
+        } else if (phone.length !== 11 || !/^\d+$/.test(phone)) {
+            showError('phone', 'Must be 11 digits');
+            hideLoading();
+            return;
+        }
+
+        if (!password) {
+            showError('password', 'Password is required');
+            hideLoading();
+            return;
+        } else if (password.length < 8) {
+            showError('password', 'Minimum 8 characters');
+            hideLoading();
+            return;
+        }
+
+        if (!confirmPassword) {
+            showError('confirm-password', 'Please confirm password');
+            hideLoading();
+            return;
+        } else if (password !== confirmPassword) {
+            showError('confirm-password', 'Passwords do not match');
+            hideLoading();
+            return;
+        }
+
+        try {
+            // Create user with Firebase Auth
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+            
+            // Save additional user data to Firestore
+            await db.collection('users').doc(user.uid).set({
+                name: name,
+                email: email,
+                phone: phone,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                balance: 0,
+                role: 'user',
+                status: 'active'
+            });
+
+            // Sign out the user (to prevent auto-login)
+            await auth.signOut();
+            
+            // Show success modal and redirect after animation
+            showSuccessModal();
+
+        } catch (error) {
+            hideLoading();
+            console.error('Signup error:', error);
+            
+            if (error.code === 'auth/email-already-in-use') {
+                showError('email', 'Email is already in use');
+            } else if (error.code === 'auth/weak-password') {
+                showError('password', 'Password should be stronger');
+            } else if (error.code === 'auth/invalid-email') {
+                showError('email', 'Invalid email address');
+            } else {
+                showError('email', 'Signup failed. Please try again.');
+            }
+        }
+    });
+
+    // Event listeners
+    document.getElementById('password').addEventListener('input', checkPasswordStrength);
+    
+    // Phone number validation (numbers only)
+    document.getElementById('phone').addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+
+    // Remove error when user starts typing
+    document.querySelectorAll('.form-control').forEach(input => {
+        input.addEventListener('input', function() {
+            this.parentElement.classList.remove('error');
+        });
+    });
+
+    // Focus input when clicking on form-group
+    document.querySelectorAll('.form-group').forEach(group => {
+        group.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('form-control')) {
+                group.querySelector('.form-control').focus();
+            }
+        });
+    });
+</script>
+</body>
+</html>

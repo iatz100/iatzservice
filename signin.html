@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sign In</title>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<style>
+  :root {
+    --primary-color: #4a6bff;
+    --secondary-color: #f5f7ff;
+    --white: #fff;
+    --error-color: #ff4d4d;
+    --text-color: #333;
+    --border-color: #ddd;
+    --background-color: var(--secondary-color);
+    --card-background: var(--white);
+    --header-bg: var(--white);
+    --footer-bg: var(--white);
+    --footer-text: var(--text-color);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --secondary-color: #1a1a1a;
+      --white: #2d2d2d;
+      --text-color: #f0f0f0;
+      --border-color: #444;
+      --background-color: #121212;
+      --card-background: var(--white);
+      --header-bg: #1a1a1a;
+      --footer-bg: #1a1a1a;
+      --footer-text: #f0f0f0;
+    }
+  }
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  p {
+    font-size: 12px;
+  }
+
+  body {
+    background: var(--background-color);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 0;
+    transition: background 0.3s ease, color 0.3s ease;
+    overflow: hidden;
+  }
+  
+  /* Header Styles */
+  header {
+    background-color: var(--header-bg);
+    padding: 5px 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: background 0.3s ease;
+    flex-shrink: 0;
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+     border-bottom: 1px solid rgb(223, 32, 248);
+    
+  }
+
+  .header-image {
+    max-height: 25px;
+    width: auto;
+  }
+  
+  /* Main Content Styles */
+  main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  
+  .auth-container {
+    width: 100%;
+    max-width: 400px;
+    background: var(--card-background);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: background 0.3s ease;
+    margin: 20px 0;
+  }
+  
+  /* Footer Styles */
+  footer {
+    background-color: var(--footer-bg);
+    color: var(--footer-text);
+    text-align: center;
+    padding: 15px 20px;
+    transition: background 0.3s ease, color 0.3s ease;
+    flex-shrink: 0;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+     border-top: 1px solid rgb(223, 32, 248);
+  }
+  
+  .auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .auth-header h1 {
+    color: var(--text-color);
+  }
+  .auth-header p {
+    color: var(--text-color);
+    opacity: 0.8;
+  }
+  .form-group {
+    position: relative;
+    margin-bottom: 35px;
+    cursor: text;
+  }
+  .form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+    transition: 0.3s;
+    background-color: var(--card-background);
+    color: var(--text-color);
+  }
+  .floating-label {
+    position: absolute;
+    left: 15px;
+    top: 12px;
+    color: #999;
+    font-size: 16px;
+    pointer-events: none;
+    transition: 0.3s ease;
+    background: var(--card-background);
+    padding: 0 5px;
+  }
+  .form-control:focus + .floating-label,
+  .form-control:not(:placeholder-shown) + .floating-label {
+    top: -10px;
+    left: 10px;
+    font-size: 12px;
+    color: var(--primary-color);
+  }
+  .form-control:focus {
+    border-color: var(--primary-color);
+  }
+  /* Error State */
+  .form-group.error .form-control {
+    border-color: var(--error-color);
+  }
+  /* Error icon */
+  .error-icon {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    background: var(--error-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.3s;
+  }
+  .form-group.error .error-icon {
+    opacity: 1;
+  }
+  /* Tooltip (red text) */
+  .tooltip {
+    position: absolute;
+    top: 50%;
+    right: 40px;
+    transform: translateY(-50%) translateX(20px);
+    color: var(--error-color);
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    opacity: 0;
+    transition: 0.3s ease;
+  }
+  .form-group.error .tooltip {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+  .btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: opacity 0.3s;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  .auth-footer {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+    color: var(--text-color);
+  }
+  .auth-footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .auth-footer a:hover {
+    text-decoration: underline;
+  }
+  .forgot-password {
+    text-align: center;
+    margin-top: 15px;
+  }
+  .forgot-password a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .forgot-password a:hover {
+    text-decoration: underline;
+  }
+  /* Toast notification - CHANGED FROM BOTTOM TO TOP */
+  .toast {
+    position: fixed;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #4CAF50;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+    display: inline-block;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90%;
+}
+
+  
+  .toast.show {
+    opacity: 1;
+  }
+  /* Loading spinner */
+  .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  /* Remember me checkbox */
+  .remember-me {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+  .remember-me input {
+    margin-right: 8px;
+    cursor: pointer;
+  }
+  /* Page loader - COMPLETELY REMOVED */
+  .hidden-content {
+    visibility: hidden;
+  }
+</style>
+</head>
+<body>
+  <!-- Page loader removed completely -->
+
+  <header class="hidden-content">
+    <img src="https://blogger.googleusercontent.com/img/a/AVvXsEgtMmwDkd4fcMuYiu4PceeC3kh63S5tv-Wnm1qRDGRLYplLsXgwz37EYr_QTqJRdNHBPkuC9bPzi6eSRPU9c7Q8w32nC_wUmwcOAn65iKHOy-Xw5Z04vbMsLuIYHM7D0sOZlEy4vMWQ8ULGch8AqvU7sE7W66t_cyFFAjMHxdxvA7GzHNL6ENkTQEJt=s1600" alt="Social Service Logo" class="header-image">
+  </header>
+
+  <main class="hidden-content">
+    <div class="auth-container">
+      <div class="auth-header">
+        <h1>Sign In</h1>
+        <p>Welcome back! Please login to continue.</p>
+      </div>
+
+      <form id="signin-form" novalidate>
+        <div class="form-group">
+          <input type="email" id="email" class="form-control" placeholder=" " />
+          <label for="email" class="floating-label">Email Address</label>
+          <div class="error-icon">!</div>
+          <div class="tooltip">Email is required</div>
+        </div>
+
+        <div class="form-group">
+          <input type="password" id="password" class="form-control" placeholder=" " />
+          <label for="password" class="floating-label">Password</label>
+          <div class="error-icon">!</div>
+          <div class="tooltip">Password is required</div>
+        </div>
+
+        <div class="remember-me">
+          <input type="checkbox" id="remember-email">
+          <label for="remember-email">Remember my email</label>
+        </div>
+
+        <button type="submit" class="btn" id="submit-btn">
+          <span id="btn-text">Sign In</span>
+        </button>
+
+        <div class="forgot-password">
+          <a href="forgotpassword.html">Forgot Password?</a>
+        </div>
+
+        <div class="auth-footer">
+          Don't have an account? <a href="signup.html">Create Account</a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer class="hidden-content">
+    <p> Copyright &copy; 2018-2025 iA TECH ZONE All Rights Reserved.</p>
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyCEn86IfdTNcvEmQuNP-KCvrmMABagcdkc",
+    authDomain: "web-iatz.firebaseapp.com",
+    projectId: "web-iatz",
+    storageBucket: "web-iatz.appspot.com",
+    messagingSenderId: "264921056318",
+    appId: "1:264921056318:web:c77e93fad660665bdfbd6f"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  const form = document.getElementById('signin-form');
+  const inputs = form.querySelectorAll('.form-control');
+  const toast = document.getElementById('toast');
+  const submitBtn = document.getElementById('submit-btn');
+  const btnText = document.getElementById('btn-text');
+  const rememberEmailCheckbox = document.getElementById('remember-email');
+  const emailInput = document.getElementById('email');
+  const header = document.querySelector('header');
+  const main = document.querySelector('main');
+  const footer = document.querySelector('footer');
+
+  // Check if user is already logged in and redirect
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      // User is signed in, redirect to home page
+      window.location.href = 'index.html';
+    } else {
+      // User is not signed in, show the content
+      header.classList.remove('hidden-content');
+      main.classList.remove('hidden-content');
+      footer.classList.remove('hidden-content');
+      
+      // Check for saved email
+      checkSavedEmail();
+    }
+  });
+
+  // Check if there's a saved email in localStorage
+  function checkSavedEmail() {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    const rememberEmail = localStorage.getItem('rememberEmail') === 'true';
+    
+    if (savedEmail) {
+      emailInput.value = savedEmail;
+    }
+    
+    if (rememberEmail) {
+      rememberEmailCheckbox.checked = true;
+    }
+  }
+
+  // Save or remove email based on checkbox state
+  function handleEmailRemember() {
+    const email = emailInput.value.trim();
+    
+    if (rememberEmailCheckbox.checked && email) {
+      localStorage.setItem('rememberedEmail', email);
+      localStorage.setItem('rememberEmail', 'true');
+    } else {
+      localStorage.removeItem('rememberedEmail');
+      localStorage.removeItem('rememberEmail');
+    }
+  }
+
+  function showToast(message, isSuccess = true) {
+    toast.textContent = message;
+    toast.style.backgroundColor = isSuccess ? '#4CAF50' : '#f44336';
+    toast.classList.add('show');
+
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
+  }
+
+  function showLoading() {
+    submitBtn.disabled = true;
+    btnText.innerHTML = '<span class="spinner"></span> Signing in...';
+  }
+
+  function hideLoading() {
+    submitBtn.disabled = false;
+    btnText.textContent = 'Sign In';
+  }
+
+  // Make entire form-group clickable to focus input
+  document.querySelectorAll('.form-group').forEach(group => {
+    group.addEventListener('click', function(e) {
+      // Only focus if click is not on an input or label
+      if (!e.target.classList.contains('form-control') && 
+          !e.target.classList.contains('floating-label')) {
+        const input = this.querySelector('.form-control');
+        input.focus();
+      }
+    });
+  });
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    showLoading();
+
+    // Clear all errors first
+    inputs.forEach(input => input.parentElement.classList.remove('error'));
+
+    let firstInvalid = null;
+
+    // Check for empty fields (only show first error)
+    for (let input of inputs) {
+      if (!input.value.trim()) {
+        input.parentElement.classList.add('error');
+        if (!firstInvalid) {
+          firstInvalid = input;
+          break; // Stop after first error
+        }
+      }
+    }
+
+    if (firstInvalid) {
+      firstInvalid.focus();
+      hideLoading();
+      return;
+    }
+
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    // Save email if remember me is checked
+    handleEmailRemember();
+
+    auth.signInWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        // Update last login timestamp in Firestore
+        const user = userCredential.user;
+        return db.collection('users').doc(user.uid).update({
+          lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      })
+      .then(() => {
+        showToast('Signed in successfully! Redirecting...');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
+      })
+      .catch(error => {
+        hideLoading();
+        let errorMessage = "Incorrect E-mail or password";
+        let errorField = null;
+
+        if (error.code === 'auth/user-not-found') {
+          errorMessage = "User not found. Please check your email or create an account.";
+            errorField = document.getElementById('email');
+        } else if (error.code === 'auth/wrong-password') {
+          errorMessage = "Incorrect password. Please try again or reset your password.";
+          errorField = document.getElementById('password');
+        } else if (error.code === 'auth/invalid-email') {
+          errorMessage = "Invalid email address format.";
+          errorField = document.getElementById('email');
+        } else if (error.code === 'auth/too-many-requests') {
+          errorMessage = "Too many failed attempts. Account temporarily locked. Try again later or reset your password.";
+        } else if (error.code === 'auth/user-disabled') {
+          errorMessage = "This account has been disabled. Please contact support.";
+        }
+
+        if (errorField) {
+          // Show only one error at a time
+          inputs.forEach(input => input.parentElement.classList.remove('error'));
+          errorField.parentElement.classList.add('error');
+          errorField.parentElement.querySelector('.tooltip').textContent = errorMessage;
+          errorField.focus();
+        }
+
+        showToast(errorMessage, false);
+      });
+  });
+
+  // Remove error on input
+  inputs.forEach(input => {
+    input.addEventListener('input', () => {
+      if (input.value.trim()) {
+        input.parentElement.classList.remove('error');
+      }
+    });
+  });
+
+  // Handle password visibility toggle (bonus feature)
+  document.getElementById('password').addEventListener('keyup', function(e) {
+    if (e.key === 'Enter') {
+      form.dispatchEvent(new Event('submit'));
+    }
+  });
+
+  // Update email storage when checkbox state changes
+  rememberEmailCheckbox.addEventListener('change', function() {
+    handleEmailRemember();
+  });
+
+  // Update email storage when email input changes and checkbox is checked
+  emailInput.addEventListener('input', function() {
+    if (rememberEmailCheckbox.checked) {
+      handleEmailRemember();
+    }
+  });
+</script>
+</body>
+</html>
